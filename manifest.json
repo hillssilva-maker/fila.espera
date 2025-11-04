@@ -1,0 +1,21 @@
+{
+  "name": "Coletor de Dados de Tráfego",
+  "short_name": "Coletor V6",
+  "start_url": ".",
+  "display": "standalone",
+  "background_color": "#1a1b26",
+  "theme_color": "#7f5af0",
+  "description": "Ferramenta de coleta de dados de tráfego.",
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "type": "image/png",
+      "sizes": "192x192"
+    },
+    {
+      "src": "icon-512.png",
+      "type": "image/png",
+      "sizes": "512x512"
+    }
+  ]
+}

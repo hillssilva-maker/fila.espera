@@ -1,0 +1,847 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Coletor de Dados - V6.3 PWA</title>
+    
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#7f5af0">
+
+    <style>
+        :root {
+            --cor-primaria: #7f5af0;      
+            --cor-secundaria: #00f5c3;   
+            --cor-alerta: #ffc107;
+            --cor-erro: #e74c3c;
+            --cor-sucesso: #28a745;
+            --cor-info: #17a2b8;
+            
+            --cor-fundo: #1a1b26;         
+            --cor-card: #2a2c3f;         
+            --cor-borda: #4a4d6b;
+            --cor-input-fundo: #1a1b26;
+            
+            --cor-texto-principal: #f1f1f1;
+            --cor-texto-secundario: #a9a9b3;
+            --cor-placeholder: #6a6d8a;
+
+            --sombra-leve: 0 4px 12px rgba(0, 0, 0, 0.2);
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 15px;
+            background-color: var(--cor-fundo);
+            color: var(--cor-texto-principal);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 480px;
+            width: 100%;
+            padding: 20px;
+            background: var(--cor-card);
+            border-radius: 12px;
+            box-shadow: var(--sombra-leve);
+            text-align: center;
+        }
+
+        h1 {
+            color: var(--cor-primaria);
+            font-size: 1.8em;
+            margin-bottom: 15px;
+            border-bottom: 2px solid var(--cor-borda);
+            padding-bottom: 5px;
+        }
+
+        /* --- Formulário de Cabeçalho --- */
+        .cabecalho-form {
+            margin-bottom: 20px;
+            text-align: left;
+        }
+
+        .cabecalho-form label {
+            display: block;
+            margin-top: 15px;
+            margin-bottom: 5px;
+            font-weight: bold;
+            font-size: 0.95em;
+            color: var(--cor-texto-secundario);
+        }
+
+        .cabecalho-form input[type="text"],
+        .cabecalho-form input[type="number"],
+        .cabecalho-form input[type="time"] {
+            width: 100%;
+            padding: 10px 12px;
+            box-sizing: border-box;
+            border: 1px solid var(--cor-borda);
+            border-radius: 6px;
+            font-size: 1em;
+            transition: border-color 0.3s, box-shadow 0.3s;
+            background-color: var(--cor-input-fundo);
+            color: var(--cor-texto-principal);
+        }
+        
+        .cabecalho-form input[type="time"] {
+            color-scheme: dark;
+        }
+        
+        .cabecalho-form input::placeholder {
+            color: var(--cor-placeholder);
+        }
+
+        .cabecalho-form input:focus {
+            border-color: var(--cor-primaria);
+            box-shadow: 0 0 0 0.2rem rgba(127, 90, 240, 0.25);
+            outline: none;
+        }
+
+        #cruzamento1Input,
+        #cruzamento2Input,
+        #sentidoInput {
+            text-transform: uppercase;
+        }
+        
+        .cruzamento-group {
+            display: flex;
+            align-items: center;
+        }
+        .cruzamento-group input {
+            flex-grow: 1;
+            width: 50%;
+        }
+        .cruzamento-group .x-fixo {
+            font-weight: bold;
+            font-size: 1.5em;
+            margin: 0 8px;
+            color: var(--cor-erro);
+        }
+
+        /* --- Seletor de AGENTE (Single Choice) --- */
+        .select-custom {
+            position: relative;
+            border: 1px solid var(--cor-borda);
+            border-radius: 6px;
+            padding: 8px 10px;
+            min-height: 44px; 
+            background-color: var(--cor-input-fundo);
+            cursor: pointer;
+            transition: border-color 0.3s, box-shadow 0.3s;
+        }
+        .select-custom:hover {
+            border-color: var(--cor-primaria);
+        }
+        
+        .select-custom select {
+            position: absolute;
+            opacity: 0;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            cursor: pointer;
+            z-index: 10; 
+        }
+
+        .tag-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+            min-height: 25px;
+            pointer-events: none; 
+        }
+        
+        .tag {
+            background-color: var(--cor-primaria);
+            color: white;
+            border-radius: 4px;
+            padding: 3px 8px;
+            font-size: 0.8em;
+            display: flex;
+            align-items: center;
+            font-weight: 500;
+        }
+        
+        .tag-remove {
+            margin-left: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            line-height: 1;
+            pointer-events: all; 
+        }
+
+        #agenteCustom.agente-selecionado #agenteInput {
+            display: none;
+        }
+
+        /* --- Componente de Multiselect com CHECKBOXES para EQUIPE --- */
+        .custom-multiselect {
+            position: relative;
+        }
+        
+        .multiselect-trigger {
+            border: 1px solid var(--cor-borda);
+            border-radius: 6px;
+            padding: 8px 10px;
+            min-height: 44px;
+            background-color: var(--cor-input-fundo);
+            cursor: pointer;
+            transition: border-color 0.3s, box-shadow 0.3s;
+        }
+        .multiselect-trigger:hover {
+            border-color: var(--cor-primaria);
+        }
+        
+        .dropdown-content {
+            display: none;
+            position: absolute;
+            background-color: var(--cor-card);
+            border: 1px solid var(--cor-borda);
+            box-shadow: var(--sombra-leve);
+            border-radius: 6px;
+            width: 100%;
+            max-height: 200px;
+            overflow-y: auto;
+            z-index: 100;
+            margin-top: 5px;
+        }
+        .dropdown-content.is-open {
+            display: block;
+        }
+        
+        .dropdown-item {
+            padding: 8px 12px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .dropdown-item:hover {
+            background-color: var(--cor-fundo);
+        }
+        .dropdown-item label {
+            margin: 0;
+            cursor: pointer;
+            width: 100%;
+        }
+        .dropdown-item input[type="checkbox"] {
+            cursor: pointer;
+            accent-color: var(--cor-primaria);
+        }
+        .dropdown-item input[type="checkbox"]:disabled + label {
+            color: var(--cor-texto-secundario);
+            text-decoration: line-through;
+            cursor: not-allowed;
+        }
+
+        #equipeTagContainer:empty::before {
+            content: 'Selecione 1 ou mais membros';
+            color: var(--cor-placeholder);
+            font-size: 0.9em;
+            line-height: 25px; 
+            pointer-events: none;
+        }
+
+
+        /* --- Input de Dados (Destaque) --- */
+        #numeroInput {
+            width: 100%;
+            padding: 20px;
+            margin-bottom: 10px;
+            box-sizing: border-box;
+            border: 3px solid var(--cor-primaria);
+            border-radius: 8px;
+            font-size: 2.2em;
+            text-align: center;
+            font-weight: bold;
+            background-color: var(--cor-input-fundo);
+            color: var(--cor-texto-principal);
+        }
+        #numeroInput::placeholder {
+            color: var(--cor-placeholder);
+        }
+
+        /* --- Botões de Ação --- */
+        .botoes-acao {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 20px;
+        }
+        .botoes-acao button {
+            flex-grow: 1;
+            padding: 12px 5px;
+            margin: 0 5px;
+            border: none;
+            border-radius: 6px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background-color 0.2s, opacity 0.2s;
+            font-size: 0.95em;
+        }
+        
+        #btnPausar { background-color: var(--cor-alerta); color: #333; }
+        #btnFinalizar { background-color: var(--cor-erro); color: white; }
+        #btnReiniciar { background-color: var(--cor-secundaria); color: white; }
+        
+        .botoes-acao button:hover { opacity: 0.9; }
+
+        /* Mensagens */
+        .aviso {
+            background-color: #4a4c5f;
+            color: var(--cor-texto-secundario);
+            padding: 8px;
+            margin-top: 15px;
+            margin-bottom: 15px;
+            border-radius: 6px;
+            border-left: 5px solid var(--cor-info);
+            text-align: left;
+            font-size: 0.85em;
+        }
+
+        .aviso.erro {
+            background-color: #f8d7da;
+            color: var(--cor-erro);
+            border-left-color: var(--cor-erro);
+            display: none; 
+        }
+        .aviso.erro:not(:empty) {
+            display: block;
+        }
+        
+        #downloadLink {
+            background-color: var(--cor-sucesso);
+            padding: 12px 25px;
+            color: white;
+            border-radius: 6px;
+            text-decoration: none;
+            display: none;
+            font-weight: bold;
+            text-transform: uppercase;
+            margin-top: 20px;
+        }
+        
+        #dadosColetados {
+            margin-top: 15px;
+            text-align: left;
+            max-height: 120px;
+            overflow-y: auto;
+            border: 1px solid var(--cor-borda);
+            background-color: var(--cor-fundo);
+            padding: 8px;
+            width: 100%;
+            box-sizing: border-box;
+            border-radius: 6px;
+            font-size: 0.85em;
+        }
+        
+        #posicaoAtual {
+            color: var(--cor-secundaria); 
+            font-weight: bold;
+            font-size: 1.1em;
+            margin: 10px 0 5px 0;
+            text-align: center;
+        }
+        
+        #mensagemConclusao {
+            display: none; 
+            color: var(--cor-sucesso);
+            border-left-color: var(--cor-sucesso);
+            background-color: #2a2c3f;
+            font-weight: bold;
+            text-align: center;
+            margin: 10px 0 5px 0;
+        }
+
+
+        /* Controla a Pausa via CSS */
+        #mensagemPausa {
+            display: none; 
+            font-weight: bold;
+            color: var(--cor-info);
+            margin-top: 15px;
+        }
+        
+        .container.is-paused #numeroInput,
+        .container.is-paused #posicaoAtual,
+        .container.is-paused #mensagemConclusao {
+            display: none;
+        }
+        .container.is-paused #mensagemPausa {
+            display: block;
+        }
+        .container.is-paused #btnPausar {
+            background-color: var(--cor-info);
+            color: white;
+        }
+        
+    </style>
+</head>
+<body>
+
+    <div class="container" id="mainContainer">
+        <h1>Coleta de Dados de Tráfego</h1>
+
+        <div class="cabecalho-form">
+            
+            <label for="cruzamento1Input">Cruzamento:</label>
+            <div class="cruzamento-group">
+                <input type="text" id="cruzamento1Input" placeholder="Ex: Av. Rio Branco" required>
+                <span class="x-fixo">X</span>
+                <input type="text" id="cruzamento2Input" placeholder="Ex: R. Chile" required>
+            </div>
+            
+            <label for="horaInicioInput">Hora de Início da Contagem:</label>
+            <input type="time" id="horaInicioInput" required>
+
+            <label for="equipeTrigger">Equipe (Múltipla Seleção):</label>
+            <div class="custom-multiselect">
+                <div class="multiselect-trigger" id="equipeTrigger" onclick="toggleEquipeDropdown()">
+                    <div class="tag-container" id="equipeTagContainer">
+                    </div>
+                </div>
+                <div class="dropdown-content" id="equipeDropdownContent">
+                </div>
+            </div>
+
+            <label for="agenteInput">Agente Avaliador:</label>
+            <div class="select-custom" id="agenteCustom">
+                <select id="agenteInput" onchange="selecionarAgente(this.value)" required>
+                </select>
+                <div class="tag-container" id="agenteTagContainer">
+                </div>
+            </div>
+            
+            <label for="matriculaInput">Matrícula (Agente Avaliador):</label>
+            <input type="number" id="matriculaInput" placeholder="Matrícula numérica" inputmode="numeric" pattern="[0-9]*" required>
+
+            <label for="sentidoInput">Sentido da Contagem:</label>
+            <input type="text" id="sentidoInput" placeholder="Ex: Leste > Oeste">
+        </div>
+
+        <div class="format-info">
+            (Matriz CSV: 12 Colunas (5s a 60s) x 60 Linhas (0m a 59m))
+        </div>
+
+        <div class="botoes-acao">
+            <button id="btnPausar" onclick="alternarPausa()">Pausar</button>
+            <button id="btnFinalizar" onclick="finalizarColeta()">Finalizar</button>
+            <button id="btnReiniciar" onclick="reiniciarColeta()">Reiniciar</button>
+        </div>
+
+        <div class="aviso">
+            Digite o número inteiro no campo abaixo e tecle **Enter**.
+        </div>
+
+        <p id="mensagemErro" class="aviso erro"></p>
+
+        <h4 id="posicaoAtual"></h4>
+        <p id="mensagemConclusao" class="aviso">COLETA CONCLUÍDA!</p>
+        
+        <input type="number" id="numeroInput" placeholder="Aperte ENTER" pattern="\d*" inputmode="numeric" autofocus>
+
+        <p id="mensagemPausa">COLETA PAUSADA. Clique em **Retomar** ou tecle Enter.</p>
+        
+        <a id="downloadLink" href="#" download="dados.csv">BAIXAR ARQUIVO CSV</a>
+
+        <h3>Dados Coletados (Total: <span id="contadorDados">0</span>):</h3>
+        
+        <div id="dadosColetados">
+        </div>
+    </div>
+
+    <script>
+        // Array fixo de nomes
+        const todosNomes = [
+            "BRAZ", "CLAUDIA", "DA HORA", "DIAS", "FORTALEZA", 
+            "HILDIMAR", "HORTIZ", "JAQUELINE", "JANSEN", "MARQUES", 
+            "PASSOS", "ROCHA", "ROSEMEIRY", "SANTOS"
+        ].sort(); 
+
+        // Referências aos elementos do DOM
+        const mainContainer = document.getElementById('mainContainer');
+        const input = document.getElementById('numeroInput');
+        const dadosDiv = document.getElementById('dadosColetados');
+        const downloadLink = document.getElementById('downloadLink');
+        const mensagemErro = document.getElementById('mensagemErro');
+        const contadorDados = document.getElementById('contadorDados');
+        const btnPausar = document.getElementById('btnPausar');
+        const cruzamento1Input = document.getElementById('cruzamento1Input');
+        const cruzamento2Input = document.getElementById('cruzamento2Input');
+        const horaInicioInput = document.getElementById('horaInicioInput');
+        const agenteSelect = document.getElementById('agenteInput');
+        const matriculaInput = document.getElementById('matriculaInput');
+        const sentidoInput = document.getElementById('sentidoInput');
+        const agenteCustom = document.getElementById('agenteCustom');
+        const agenteTagContainer = document.getElementById('agenteTagContainer');
+        const equipeDropdownContent = document.getElementById('equipeDropdownContent');
+        const equipeTagContainer = document.getElementById('equipeTagContainer');
+        const posicaoAtual = document.getElementById('posicaoAtual');
+        const mensagemConclusao = document.getElementById('mensagemConclusao');
+
+        let dados = [];
+        let emLoop = true;
+        let agenteSelecionado = '';
+
+        const MINUTOS_TOTAIS = 60;     // 0m a 59m
+        const COLUNAS_SEGUNDOS = 12;  // 5s, 10s, 15s... 60s
+        const MAX_DADOS_REAL = MINUTOS_TOTAIS * COLUNAS_SEGUNDOS; // 60 * 12 = 720
+
+        // ===============================================
+        // FUNÇÕES DE MANIPULAÇÃO DE SELECT E TAGS
+        // ===============================================
+
+        function gerarOpcoesAgente(selectElement, listaNomes) {
+            selectElement.innerHTML = '<option value="" disabled selected>Selecione um Agente</option>';
+            listaNomes.forEach(nome => {
+                const option = document.createElement('option');
+                option.value = nome;
+                option.textContent = nome;
+                selectElement.appendChild(option);
+            });
+        }
+        
+        function gerarOpcoesCheckboxEquipe(container, listaNomes) {
+            container.innerHTML = '';
+            listaNomes.forEach(nome => {
+                const id = `check-${nome.replace(/\s+/g, '-')}`;
+                const item = document.createElement('div');
+                item.className = 'dropdown-item';
+                
+                item.innerHTML = `
+                    <input type="checkbox" id="${id}" value="${nome}">
+                    <label for="${id}">${nome}</label>
+                `;
+                
+                item.querySelector('input[type="checkbox"]').addEventListener('change', atualizarTagsEquipe);
+                container.appendChild(item);
+            });
+        }
+
+
+        function criarTag(nome, containerId, isAgente = false) {
+            const container = document.getElementById(containerId);
+            if (isAgente) {
+                container.innerHTML = ''; 
+            }
+            
+            const tag = document.createElement('div');
+            tag.className = 'tag';
+            tag.textContent = nome;
+
+            if (isAgente) {
+                const removeBtn = document.createElement('span');
+                removeBtn.className = 'tag-remove';
+                removeBtn.textContent = '×';
+                removeBtn.onclick = (e) => {
+                    e.stopPropagation(); 
+                    removerAgente(nome);
+                };
+                tag.appendChild(removeBtn);
+            }
+            container.appendChild(tag);
+        }
+
+        function selecionarAgente(nome) {
+            if (nome === "") return;
+            
+            if (agenteSelecionado) {
+                removerAgente(agenteSelecionado);
+            }
+            
+            agenteSelecionado = nome;
+            
+            agenteCustom.classList.add('agente-selecionado');
+            criarTag(nome, 'agenteTagContainer', true);
+            
+            const checkboxEquipe = document.querySelector(`#equipeDropdownContent input[value="${nome}"]`);
+            if (checkboxEquipe) {
+                checkboxEquipe.checked = false; 
+                checkboxEquipe.disabled = true;
+            }
+            
+            atualizarTagsEquipe();
+            input.focus();
+        }
+
+        function removerAgente(nome) {
+            agenteSelecionado = '';
+            
+            agenteCustom.classList.remove('agente-selecionado');
+            agenteSelect.selectedIndex = 0;
+            agenteTagContainer.innerHTML = '';
+            
+            const checkboxEquipe = document.querySelector(`#equipeDropdownContent input[value="${nome}"]`);
+            if (checkboxEquipe) {
+                checkboxEquipe.disabled = false;
+            }
+            
+            input.focus();
+        }
+
+        function toggleEquipeDropdown() {
+            equipeDropdownContent.classList.toggle('is-open');
+        }
+
+        function atualizarTagsEquipe() {
+            equipeTagContainer.innerHTML = ''; 
+            const checkedBoxes = document.querySelectorAll('#equipeDropdownContent input:checked');
+            
+            checkedBoxes.forEach(checkbox => {
+                criarTag(checkbox.value, 'equipeTagContainer'); 
+            });
+        }
+        
+        function getEquipeSelecionada() {
+            const checkedBoxes = document.querySelectorAll('#equipeDropdownContent input:checked');
+            return Array.from(checkedBoxes).map(cb => cb.value);
+        }
+        
+        function atualizarPosicaoDisplay() {
+            const totalEntradas = dados.length;
+            
+            if (totalEntradas >= MAX_DADOS_REAL) {
+                posicaoAtual.style.display = 'none';
+                mensagemConclusao.style.display = 'block';
+                return;
+            }
+            
+            posicaoAtual.style.display = 'block';
+            mensagemConclusao.style.display = 'none';
+            
+            const minutoIdx = Math.floor(totalEntradas / COLUNAS_SEGUNDOS); 
+            const segundoIdx = totalEntradas % COLUNAS_SEGUNDOS;     
+            
+            const minutoLabel = String(minutoIdx).padStart(2, '0');
+            const segundoLabel = String((segundoIdx + 1) * 5).padStart(2, '0');
+            
+            posicaoAtual.textContent = `Próxima Posição: ${minutoLabel}m e ${segundoLabel}s`;
+        }
+
+        // ===============================================
+        // LÓGICA DE CONTROLE E EXPORTAÇÃO
+        // ===============================================
+        
+        function alternarPausa() {
+            if (!emLoop) {
+                emLoop = true;
+                mainContainer.classList.remove('is-paused');
+                btnPausar.textContent = 'Pausar';
+                input.focus();
+            } else {
+                emLoop = false;
+                mainContainer.classList.add('is-paused');
+                btnPausar.textContent = 'Retomar';
+            }
+        }
+
+        function reiniciarColeta() {
+            if (confirm("Deseja realmente REINICIAR? Todos os dados coletados serão perdidos e os campos de cabeçalho serão limpos.")) {
+                dados = [];
+                emLoop = true;
+                dadosDiv.innerHTML = '';
+                contadorDados.textContent = '0';
+                input.value = '';
+                downloadLink.style.display = 'none'; 
+                mensagemErro.textContent = ''; 
+
+                mainContainer.classList.remove('is-paused');
+                btnPausar.textContent = 'Pausar';
+                
+                cruzamento1Input.value = '';
+                cruzamento2Input.value = '';
+                horaInicioInput.value = '';
+                matriculaInput.value = '';
+                sentidoInput.value = '';
+                
+                if (agenteSelecionado) {
+                    removerAgente(agenteSelecionado);
+                }
+                
+                const checkedBoxes = document.querySelectorAll('#equipeDropdownContent input:checked');
+                checkedBoxes.forEach(cb => cb.checked = false);
+                atualizarTagsEquipe();
+                
+                atualizarPosicaoDisplay(); 
+                
+                alert('Contagem Reiniciada.'); 
+                input.focus();
+            }
+        }
+
+        function finalizarColeta() {
+            const cruz1 = cruzamento1Input.value.trim().toUpperCase();
+            const cruz2 = cruzamento2Input.value.trim().toUpperCase();
+            const cruzamentoCompleto = `${cruz1} X ${cruz2}`;
+            
+            const horaInicio = horaInicioInput.value.trim();
+            const matricula = matriculaInput.value.trim().replace(/[^0-9]/g, '');
+            const agente = agenteSelecionado;
+            
+            if (cruz1 === '' || cruz2 === '' || horaInicio === '' || matricula === '' || agente === '') {
+                mensagemErro.textContent = 'Preencha Cruzamento, Hora de Início, Agente e Matrícula antes de finalizar.';
+                return;
+            }
+
+            if (confirm(`Deseja realmente FINALIZAR a coleta e salvar ${dados.length} dados?`)) {
+                
+                emLoop = false;
+                mainContainer.classList.add('is-paused'); 
+                mensagemErro.textContent = '';
+                
+                if (dados.length >= MAX_DADOS_REAL) {
+                    atualizarPosicaoDisplay();
+                }
+                
+                const nomeCruzamentoFormatado = cruzamentoCompleto.replace(/[^a-zA-Z0-9X]/g, '_').replace(/_{2,}/g, '_');
+                const nomeArquivo = `${nomeCruzamentoFormatado}_${matricula}.csv`;
+
+                const conteudoCSV = formatarParaCSV(cruzamentoCompleto, horaInicio); 
+                
+                const blob = new Blob([conteudoCSV], { type: 'text/csv;charset=utf-8;' });
+                const url = URL.createObjectURL(blob);
+                
+                downloadLink.href = url;
+                downloadLink.download = nomeArquivo;
+                downloadLink.textContent = `BAIXAR ${nomeArquivo}`;
+                downloadLink.style.display = 'block'; 
+                
+                dadosDiv.innerHTML = `<p style="color: var(--cor-sucesso);">Coleta finalizada. Arquivo **${nomeArquivo}** pronto para download.</p>`;
+            }
+        }
+        
+        function formatarParaCSV(cruzamentoCompleto, horaInicio) {
+            const equipeSelecionada = getEquipeSelecionada().join(' | ');
+
+            const headerData = [
+                ['Cruzamento:', cruzamentoCompleto], 
+                ['Hora de Início:', horaInicio],
+                ['Agente Avaliador:', agenteSelecionado],
+                ['Matrícula:', matriculaInput.value.trim()],
+                ['Sentido da Contagem:', sentidoInput.value.trim().toUpperCase()],
+                ['Equipe:', equipeSelecionada],
+                ['Data/Hora Fim:', new Date().toLocaleString('pt-BR')],
+                ['Total Dados Coletados:', dados.length]
+            ];
+
+            let conteudoCSV = '';
+            headerData.forEach(item => { conteudoCSV += item.join(';') + '\n'; });
+            conteudoCSV += '\n'; 
+            
+            let headers = ['Linha (Min)'];
+            for (let c = 5; c <= (COLUNAS_SEGUNDOS * 5); c += 5) { 
+                headers.push(c); 
+            }
+            conteudoCSV += headers.join(';') + '\n';
+            
+            for (let r = 0; r < MINUTOS_TOTAIS; r++) {
+                let linhaCSV = [r]; 
+                
+                for (let c_idx = 0; c_idx < COLUNAS_SEGUNDOS; c_idx++) {
+                    const index = (r * COLUNAS_SEGUNDOS) + c_idx;
+                    const valor = dados[index] !== undefined ? dados[index] : ''; 
+                    linhaCSV.push(valor);
+                }
+                conteudoCSV += linhaCSV.join(';') + '\n';
+            }
+            
+            return conteudoCSV;
+        }
+
+        // ===============================================
+        // LÓGICA DE ENTRADA E INICIALIZAÇÃO
+        // ===============================================
+
+        input.addEventListener('keyup', function(event) {
+            if (event.key === 'Enter' || event.keyCode === 13) {
+                processarEntrada();
+            }
+        });
+
+        function processarEntrada() {
+            mensagemErro.textContent = ''; 
+            
+            if (!emLoop) {
+                if (input.value.trim() === '') { alternarPausa(); }
+                return;
+            }
+            
+            const valor = input.value.trim();
+            input.value = '';
+
+            if (valor === '11111') return finalizarColeta();
+            if (valor === '00000') return alternarPausa();
+
+            if (valor !== '') {
+                const numero = parseInt(valor);
+
+                if (dados.length >= MAX_DADOS_REAL) {
+                    mensagemErro.textContent = `O limite de ${MAX_DADOS_REAL} dados foi atingido. Use o botão Finalizar.`;
+                    atualizarPosicaoDisplay(); 
+                    return;
+                }
+                
+                if (!isNaN(numero)) {
+                    dados.push(numero);
+                    
+                    const novoItem = document.createElement('p');
+                    novoItem.textContent = `${dados.length}. ${numero}`;
+                    novoItem.style.color = 'var(--cor-texto-secundario)'; 
+                    dadosDiv.prepend(novoItem);
+                    contadorDados.textContent = dados.length;
+                    
+                    atualizarPosicaoDisplay(); 
+                    
+                    if (dados.length === MAX_DADOS_REAL) {
+                        finalizarColeta();
+                        return;
+                    }
+
+                } else {
+                    mensagemErro.textContent = 'Por favor, digite um número inteiro válido.';
+                }
+            }
+            
+            input.focus();
+        }
+
+        // --- Inicialização ---
+        window.onload = () => {
+            gerarOpcoesAgente(agenteSelect, todosNomes);
+            gerarOpcoesCheckboxEquipe(equipeDropdownContent, todosNomes);
+            atualizarPosicaoDisplay(); 
+            input.focus();
+            
+            document.addEventListener('click', function(event) {
+                const trigger = document.getElementById('equipeTrigger');
+                const content = document.getElementById('equipeDropdownContent');
+                
+                if (!trigger.contains(event.target) && !content.contains(event.target)) {
+                    content.classList.remove('is-open');
+                }
+            });
+        };
+
+    </script>
+
+    <script>
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('service-worker.js')
+            .then(registration => {
+              console.log('ServiceWorker registrado com sucesso:', registration.scope);
+            })
+            .catch(error => {
+              console.log('Falha ao registrar ServiceWorker:', error);
+            });
+        });
+      }
+    </script>
+
+</body>
+</html>
