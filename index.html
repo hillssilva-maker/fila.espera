@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Coletor de Dados - V6.4</title>
+    <title>Coletor de Dados - V6.5</title>
     
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#7f5af0">
@@ -247,21 +247,18 @@
             pointer-events: none;
         }
 
-        /* * MUDANÇA (Solução iOS): 
-         * Novo container para o Input de número e o botão "OK" 
-        */
         .input-group {
             display: flex;
             gap: 10px;
-            align-items: stretch; /* Faz o botão ter a mesma altura do input */
+            align-items: stretch;
             margin-bottom: 10px;
         }
 
         #numeroInput {
-            flex-grow: 1; /* Input ocupa a maior parte do espaço */
+            flex-grow: 1;
             width: 100%;
             padding: 20px;
-            margin-bottom: 0; /* Remove a margem antiga */
+            margin-bottom: 0; 
             box-sizing: border-box;
             border: 3px solid var(--cor-primaria);
             border-radius: 8px;
@@ -275,9 +272,8 @@
             color: var(--cor-placeholder);
         }
         
-        /* MUDANÇA (Solução iOS): Estilo do novo botão "OK" */
         #btnSubmitNumero {
-            flex-shrink: 0; /* Impede que o botão encolha */
+            flex-shrink: 0; 
             padding: 0 25px;
             font-size: 1.2em;
             font-weight: bold;
@@ -393,7 +389,6 @@
             margin-top: 15px;
         }
         
-        /* MUDANÇA: Agora esconde o .input-group em vez de apenas o #numeroInput */
         .container.is-paused .input-group,
         .container.is-paused #posicaoAtual,
         .container.is-paused #mensagemConclusao {
@@ -471,7 +466,8 @@
         <p id="mensagemConclusao" class="aviso">COLETA CONCLUÍDA!</p>
         
         <div class="input-group">
-            <input type="number" id="numeroInput" placeholder="Número" pattern="\d*" inputmode="numeric" autofocus>
+            <input type="text" id="numeroInput" placeholder="Número" pattern="[0-9]*" inputmode="numeric" autofocus>
+            
             <button id="btnSubmitNumero" onclick="processarEntrada()">OK</button>
         </div>
 
@@ -787,33 +783,32 @@
         // LÓGICA DE ENTRADA E INICIALIZAÇÃO
         // ===============================================
 
-        // MUDANÇA: O 'Enter' ainda funciona em Desktops/Androids
         input.addEventListener('keyup', function(event) {
             if (event.key === 'Enter' || event.keyCode === 13) {
                 processarEntrada();
             }
         });
 
-        // MUDANÇA: A função agora é chamada pelo 'Enter' (acima)
-        // ou pelo clique no botão "OK"
         function processarEntrada() {
             mensagemErro.textContent = ''; 
             
             if (!emLoop) {
-                // Se pausado, Enter/Clique não deve fazer nada
-                // (Exceto se o usuário quisesse 'retomar', mas
-                // o botão "Retomar" é mais claro)
                 return;
             }
             
             const valor = input.value.trim();
-            // Não limpa o campo se o valor for inválido
-            // input.value = ''; // Movido para dentro do 'if (!isNaN...)'
 
             if (valor === '11111') return finalizarColeta();
             if (valor === '00000') return alternarPausa();
 
             if (valor !== '') {
+                // MUDANÇA: Como agora é um campo de texto, 
+                // validamos se é um número *antes* de tentar parseInt.
+                if (!/^[0-9]+$/.test(valor)) {
+                    mensagemErro.textContent = 'Por favor, digite apenas números inteiros.';
+                    return;
+                }
+                
                 const numero = parseInt(valor);
 
                 if (dados.length >= MAX_DADOS_REAL) {
@@ -824,7 +819,7 @@
                 
                 if (!isNaN(numero)) {
                     dados.push(numero);
-                    input.value = ''; // Limpa o campo SÓ se o número for válido
+                    input.value = ''; 
                     
                     const novoItem = document.createElement('p');
                     novoItem.textContent = `${dados.length}. ${numero}`;
