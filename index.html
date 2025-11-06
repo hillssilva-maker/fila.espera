@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Coletor de Dados - V6.3 PWA</title>
+    <title>Coletor de Dados - V6.4</title>
     
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#7f5af0">
@@ -123,7 +123,7 @@
             color: var(--cor-erro);
         }
 
-        /* --- Seletor de AGENTE (Single Choice) --- */
+        /* --- Seletores Customizados (Agente e Equipe) --- */
         .select-custom {
             position: relative;
             border: 1px solid var(--cor-borda);
@@ -180,7 +180,6 @@
             display: none;
         }
 
-        /* --- Componente de Multiselect com CHECKBOXES para EQUIPE --- */
         .custom-multiselect {
             position: relative;
         }
@@ -248,12 +247,21 @@
             pointer-events: none;
         }
 
+        /* * MUDANÇA (Solução iOS): 
+         * Novo container para o Input de número e o botão "OK" 
+        */
+        .input-group {
+            display: flex;
+            gap: 10px;
+            align-items: stretch; /* Faz o botão ter a mesma altura do input */
+            margin-bottom: 10px;
+        }
 
-        /* --- Input de Dados (Destaque) --- */
         #numeroInput {
+            flex-grow: 1; /* Input ocupa a maior parte do espaço */
             width: 100%;
             padding: 20px;
-            margin-bottom: 10px;
+            margin-bottom: 0; /* Remove a margem antiga */
             box-sizing: border-box;
             border: 3px solid var(--cor-primaria);
             border-radius: 8px;
@@ -266,6 +274,24 @@
         #numeroInput::placeholder {
             color: var(--cor-placeholder);
         }
+        
+        /* MUDANÇA (Solução iOS): Estilo do novo botão "OK" */
+        #btnSubmitNumero {
+            flex-shrink: 0; /* Impede que o botão encolha */
+            padding: 0 25px;
+            font-size: 1.2em;
+            font-weight: bold;
+            border: none;
+            border-radius: 8px;
+            background-color: var(--cor-primaria);
+            color: white;
+            cursor: pointer;
+            transition: opacity 0.2s;
+        }
+        #btnSubmitNumero:hover {
+            opacity: 0.8;
+        }
+
 
         /* --- Botões de Ação --- */
         .botoes-acao {
@@ -367,7 +393,8 @@
             margin-top: 15px;
         }
         
-        .container.is-paused #numeroInput,
+        /* MUDANÇA: Agora esconde o .input-group em vez de apenas o #numeroInput */
+        .container.is-paused .input-group,
         .container.is-paused #posicaoAtual,
         .container.is-paused #mensagemConclusao {
             display: none;
@@ -435,7 +462,7 @@
         </div>
 
         <div class="aviso">
-            Digite o número inteiro no campo abaixo e tecle **Enter**.
+            Digite o número inteiro no campo abaixo.
         </div>
 
         <p id="mensagemErro" class="aviso erro"></p>
@@ -443,9 +470,12 @@
         <h4 id="posicaoAtual"></h4>
         <p id="mensagemConclusao" class="aviso">COLETA CONCLUÍDA!</p>
         
-        <input type="number" id="numeroInput" placeholder="Aperte ENTER" pattern="\d*" inputmode="numeric" autofocus>
+        <div class="input-group">
+            <input type="number" id="numeroInput" placeholder="Número" pattern="\d*" inputmode="numeric" autofocus>
+            <button id="btnSubmitNumero" onclick="processarEntrada()">OK</button>
+        </div>
 
-        <p id="mensagemPausa">COLETA PAUSADA. Clique em **Retomar** ou tecle Enter.</p>
+        <p id="mensagemPausa">COLETA PAUSADA. Clique em **Retomar**.</p>
         
         <a id="downloadLink" href="#" download="dados.csv">BAIXAR ARQUIVO CSV</a>
 
@@ -757,22 +787,28 @@
         // LÓGICA DE ENTRADA E INICIALIZAÇÃO
         // ===============================================
 
+        // MUDANÇA: O 'Enter' ainda funciona em Desktops/Androids
         input.addEventListener('keyup', function(event) {
             if (event.key === 'Enter' || event.keyCode === 13) {
                 processarEntrada();
             }
         });
 
+        // MUDANÇA: A função agora é chamada pelo 'Enter' (acima)
+        // ou pelo clique no botão "OK"
         function processarEntrada() {
             mensagemErro.textContent = ''; 
             
             if (!emLoop) {
-                if (input.value.trim() === '') { alternarPausa(); }
+                // Se pausado, Enter/Clique não deve fazer nada
+                // (Exceto se o usuário quisesse 'retomar', mas
+                // o botão "Retomar" é mais claro)
                 return;
             }
             
             const valor = input.value.trim();
-            input.value = '';
+            // Não limpa o campo se o valor for inválido
+            // input.value = ''; // Movido para dentro do 'if (!isNaN...)'
 
             if (valor === '11111') return finalizarColeta();
             if (valor === '00000') return alternarPausa();
@@ -788,6 +824,7 @@
                 
                 if (!isNaN(numero)) {
                     dados.push(numero);
+                    input.value = ''; // Limpa o campo SÓ se o número for válido
                     
                     const novoItem = document.createElement('p');
                     novoItem.textContent = `${dados.length}. ${numero}`;
